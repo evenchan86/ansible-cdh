@@ -1,19 +1,29 @@
-- name: 挂载数据盘
-  shell: "mkfs -t ext4 /dev/vdb && mount -t ext4 /dev/vdb /opt/log && echo '/dev/vdb /opt/log ext4 defaults 0 0'>>/etc/fstab"
+- name: 创建数据目录
+  file: name=/opt/cdh state=directory
 
+- name: 挂载数据盘
+  shell: "mkfs -t ext4 /dev/vdb && mount -t ext4 /dev/vdb /opt/cdh && echo '/dev/vdb /opt/cdh ext4 defaults 0 0'>>/etc/fstab"
+  ignore_errors: true
+  
 - name: 创建相关目录
   file: name={{ item }}  state=directory
   with_items:
     - /usr/share/java
     - /opt/cloudera/parcel-repo
     - /var/www/html/cloudera-repos/cm6
-    - /opt/log/cloudera-scm-server/run
+    - /opt/cdh/log/cloudera-scm-server/run
+
+- name: 创建组
+  group: name=cloudera-scm  state=present
+
+- name: 创建用户并加入组
+  user: name=cloudera-scm groups=cloudera-scm state=present
 
 - name: chown log user
-  shell: "chown -R cloudera-scm:cloudera-scm /opt/log/*"
+  shell: "chown -R cloudera-scm:cloudera-scm /opt/cdh/log/*"
 
 - name: chown log2 user
-  shell: "chown -R cloudera-scm:cloudera-scm /opt/log"  
+  shell: "chown -R cloudera-scm:cloudera-scm /opt/cdh/log"  
 
 - name: Copy Cm6
   copy: src={{ download_path }}/cm6.2.1-redhat7.tar.gz dest=/tmp mode=755
@@ -45,13 +55,13 @@
   template: src=my.cnf dest=/etc/my.cnf backup=true
 
 - name: start mysql
-  service: name=mariadb state=restarted enable=yes
+  service: name=mariadb state=restarted enabled=yes
 
 - name: init mysql
   script: scripts/mysql_cdh_init.sh creates=/tmp/cdh_mysql_init
 
 - name: cp cdh.cloudera
-  copy: src={{ download_path }}/CDH-6.2.1-1.cdh6.2.1.p0.1425774-el7.parcel dest=/opt/cloudera/parcel-repo/
+  copy: src={{ download_path }}/CDH-6.2.1-1.cdh6.2.1.p0.1425774-el7.parcel dest=/opt/cloudera/parcel-repo/  force=no
 
 - name: cp cdhhash
   copy: src={{ download_path }}/CDH-6.2.1-1.cdh6.2.1.p0.1425774-el7.parcel.sha dest=/opt/cloudera/parcel-repo/
@@ -60,7 +70,7 @@
   shell: "chown -R cloudera-scm:cloudera-scm /opt/cloudera/parcel-repo/*"
 
 - name: 重新定义目录位置
-  shell: "echo 'export CMF_VAR=/opt' >> ~/.bashrc"
+  shell: "echo 'export CMF_VAR=/opt/cdh' >> ~/.bashrc"
 
 - name: start server
   service: name=cloudera-scm-server state=restarted enabled=yes
