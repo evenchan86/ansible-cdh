@@ -1,3 +1,8 @@
+- name: 导入GPG key
+  rpm_key:
+    state: present
+    key: https://www.elrepo.org/RPM-GPG-KEY-elrepo.org
+
 - name: 导入elrepo
   yum:
     name: http://www.elrepo.org/elrepo-release-7.0-3.el7.elrepo.noarch.rpm
