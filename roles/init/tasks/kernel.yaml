@@ -1,0 +1,13 @@
+- name: 导入elrepo
+  yum:
+    name: http://www.elrepo.org/elrepo-release-7.0-3.el7.elrepo.noarch.rpm
+    state: present
+
+- name: Install epel repo
+  yum: name=kernel-lt state=present enablerepo=elrepo-kernel
+
+- name: Sed grub config
+  shell: "sed -i s/GRUB_DEFAULT=saved/GRUB_DEFAULT=0/g /etc/default/grub"
+
+- name: Grub mkconfig
+  shell: "grub2-mkconfig -o /boot/grub2/grub.cfg"

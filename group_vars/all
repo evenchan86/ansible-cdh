@@ -1,0 +1,3 @@
+cdh_server_ip: 定义ip
+pkname: httpd
+download_path: ~/Desktop/hadoop

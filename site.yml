@@ -1,0 +1,9 @@
+---
+- hosts: hadoop
+  roles: 
+  - init
+
+
+- hosts: master
+  roles:
+  - cdh-server
